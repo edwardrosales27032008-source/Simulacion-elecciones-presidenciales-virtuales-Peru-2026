@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONPE - Conteo en Tiempo Real 2026</title>
+    <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/c/cc/Escudo_nacional_del_Per%C3%BA.svg">
+    <style>
+        :root {
+            --onpe-blue: #002e5f;
+            --peru-red: #d91e18;
+            --bg: #f4f4f4;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ddd;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .dashboard {
+            background-color: white;
+            width: 100%;
+            max-width: 900px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            border-top: 5px solid var(--peru-red);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .status-bar {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: var(--onpe-blue);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .progress-container {
+            background-color: #eee;
+            width: 100%;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background-color: var(--peru-red);
+            height: 100%;
+            width: 0%;
+            transition: width 1s ease-in-out;
+        }
+
+        .votos-count {
+            font-weight: bold;
+            text-align: right;
+            width: 80px;
+        }
+
+        .btn-volver {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: var(--onpe-blue);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <header>
+        <h1>FLASH ELECTORAL 2026</h1>
+        <p>Resultados Provisionales - Nivel Nacional</p>
+    </header>
+
+    <div class="status-bar">
+        <span>ESTADO: ACTAS EN TIEMPO REAL</span>
+        <span id="ultima-actualizacion">Última actualización: --:--:--</span>
+    </div>
+
+<table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background: #002e5f; color: white;">
+            <th style="padding: 10px;">Partido Político</th>
+            <th style="padding: 10px;">Porcentaje</th>
+            <th style="padding: 10px;">Votos</th>
+        </tr>
+    </thead>
+    <tbody id="cuerpo-resultados">
+        </tbody>
+</table>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBYv9vgKwB3kDuJ6pH57Jpt-Gt9ZDrYSeI",
+        authDomain: "sistemavotos2026.firebaseapp.com",
+        projectId: "sistemavotos2026",
+        storageBucket: "sistemavotos2026.firebasestorage.app",
+        messagingSenderId: "829769345046",
+        appId: "1:829769345046:web:ce5929176899345555ad37"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const listaPartidos = [
+        { id: 1, nombre: "Fuerza popular", logo: "assets/img/logo_fuerza_popular.svg", candi: "assets/img/keiko.png" },
+        { id: 2, nombre: "Si creo", logo: "assets/img/si_creo_logo.png", candi: "assets/img/carlos_espaq.jfif" },
+        { id: 3, nombre: "APRA", logo: "assets/img/apra_logo.png", candi: "assets/img/enrique_valderrama.jpg" },
+        { id: 4, nombre: "Renovacion popular", logo: "assets/img/renovacion_popular_logo.png", candi: "assets/img/porky.jfif" },
+        { id: 5, nombre: "Alianza para el progreso", logo: "assets/img/alianza_para_el_progreso_logo.png", candi: "assets/img/cesar_acuña.jpg" },
+        { id: 6, nombre: "Partido civico OBRAS", logo: "assets/img/partido_civico_obras.png", candi: "assets/img/ricardo_belmont.jfif" },
+        { id: 7, nombre: "Juntos por el perú", logo: "assets/img/juntos_peru_logo.png", candi: "assets/img/roberto_sanchez.jpg" },
+        { id: 8, nombre: "Buen gobierno", logo: "assets/img/buen_gobierno_logo.jpg", candi: "assets/img/jorge_nieto.jpg" },
+        { id: 9, nombre: "Pais para todos", logo: "assets/img/pais_para_todos.jpg", candi: "assets/img/carlos_alvarez.webp" },
+        { id: 10, nombre: "Ahora nación", logo: "assets/img/ahora_nacion.jpg", candi: "assets/img/lopez_chau.jfif" },
+        { id: 11, nombre: "Podemos perú", logo: "assets/img/podemos_peru_logo.png", candi: "assets/img/pepe_luna.webp" },
+        { id: 12, nombre: "Cooperación popular", logo: "assets/img/cooperacion_popular_logo.png", candi: "assets/img/lescano.jfif" },
+        { id: 13, nombre: "Perú libre", logo: "assets/img/peru_libre_logo.png", candi: "assets/img/vladimir_cerron.jfif" },
+        { id: 14, nombre: "Somos perú", logo: "assets/img/somos_peru_logo.svg", candi: "assets/img/forsyth.jfif" },
+        { id: 15, nombre: "Integridad democrática", logo: "assets/img/partidodewolfgang.jpg", candi: "assets/img/wolfgang.jfif" },
+        { id: 16, nombre: "Primero la gente", logo: "assets/img/primero_la_gente.jpg", candi: "assets/img/maria_perez_tello.jpg" },
+        { id: 17, nombre: "Frente de la esperanza", logo: "assets/img/popy_olivera_LOGO.svg", candi: "assets/img/popy_olivera.jfif" }
+    ];
+
+    const cuerpoTabla = document.getElementById('cuerpo-resultados');
+
+    // Escuchar votos en tiempo real
+    onSnapshot(collection(db, "votos"), (snapshot) => {
+        const votosDocs = snapshot.docs.map(doc => doc.data());
+        const totalVotos = votosDocs.length;
+        
+        // Limpiar tabla antes de redibujar
+        if (cuerpoTabla) cuerpoTabla.innerHTML = "";
+
+        listaPartidos.forEach(p => {
+            const numVotos = votosDocs.filter(v => v.partidoId === p.id).length;
+            const porcentaje = totalVotos > 0 ? ((numVotos / totalVotos) * 100).toFixed(2) : "0.00";
+
+            // Creamos la fila dinámicamente para que no falle
+            const fila = `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 15px; text-align: left; font-weight: bold;">${p.nombre}</td>
+                    <td style="padding: 15px;">
+                        <div style="background: #e0e0e0; border-radius: 10px; height: 20px; width: 100%;">
+                            <div style="background: #002e5f; height: 100%; width: ${porcentaje}%; border-radius: 10px; transition: width 0.5s;"></div>
+                        </div>
+                        <span style="font-size: 12px;">${porcentaje}%</span>
+                    </td>
+                    <td style="padding: 15px; font-weight: bold; font-size: 1.2rem;">${numVotos}</td>
+                </tr>
+            `;
+            if (cuerpoTabla) cuerpoTabla.innerHTML += fila;
+        });
+
+        // Actualizar hora de última carga
+        const ahora = new Date();
+        const infoActualizacion = document.getElementById('ultima-actualizacion');
+        if (infoActualizacion) infoActualizacion.innerText = "Última actualización: " + ahora.toLocaleTimeString();
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de votación 2026 - CERTUS</title>
+    <link rel="icon" href="assets/img/escudo_nacional_PERU.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <style>
+        /* Configurar colores , similares al sitio oficial de la ONPE */
+        :root {
+            --rojo-peru: #b3241f; /* Rojo oficial de la bandera */
+            --azul-onpe: #001e3e; /* Azul institucional ONPE */
+            --gris-fondo: #d9d9d9;
+            --blanco: #ffffff;
+        }
+
+        /* Estilos generales */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--gris-fondo);
+            margin: 0;
+            color: #222;
+        }
+
+        /* Barra de navegación */
+        .header-nav {
+            background-color: var(--blanco);
+            border-bottom: 25px solid var(--rojo-peru);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-nav .logo-certus {
+            height: 60px;
+        }
+
+        /* CONTENEDOR PRINCIPAL */
+        .main-container {
+            max-width: 1300px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* DISEÑO DE LA CÉDULA (GRID DE COLUMNAS) */
+        .cedula-digital {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto; /* Permite scroll horizontal en tablets/móvil */
+        }
+
+        .columna-voto {
+            background: var(--blanco);
+            border-bottom: 2px solid #ffffff;
+            min-width: 320px;
+        }
+
+        .cabecera-columna {
+            background-color: var(--azul-onpe);
+            color: white;
+            text-align: center;
+            padding: 20px 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* FILAS DE PARTIDOS */
+        .fila-partido {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #b0b0b0;
+            height: 85px;
+            transition: background 0.2s;
+        }
+
+        .fila-partido.opcion-bloqueada {
+            background-color: #f9f9f9;
+            opacity: 0.5;
+            pointer-events: none; /* No deja clickear si ya se marcó otro */
+        }
+
+        .img-contenedor {
+            width: 55px;
+            height: 55px;
+            margin: 0px 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .img-contenedor img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .nombre-p {
+            flex: 1;
+            font-size: 1rem;
+            padding: 10px;
+        }
+
+        /* CASILLA DONDE SE MARCA EL VOTO (EL ASPA) */
+        .recuadro-voto {
+            width: 50px;
+            height: 100%;
+            display: flex;
+            border: 1px solid rgb(182, 182, 182);
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 40px;
+            color: var(--rojo-peru);
+        }
+
+        .preferenciales input {
+            border: 1px solid rgb(167, 167, 167);
+        }
+
+        .input-num {
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        /* BOTÓN DE ACCIÓN FINAL */
+        .btn-enviar {
+            width: 100%;
+            max-width: 450px;
+            margin: 20px auto;
+            background-color: #00ac39;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1rem;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+        }
+
+        .btn-enviar:hover {
+            background-color: #006f25;
+        }
+
+        .btn-resultados {
+            background-color: #002e5f; /* Azul ONPE */
+            color: white;
+            padding: 60px 40px;
+            text-decoration: none;
+            border-radius: 360px;
+            font-size: 16px;
+            transition: background 0.3s;
+            display: flex;
+            width: 100px;
+            margin: auto;
+            text-align: center;
+        }
+
+        .btn-resultados:hover {
+            background-color: #0e26ff; /* Rojo al pasar el mouse */
+        }
+
+        /* FOOTER CULTURAL */
+        .footer-institucional {
+            background-color: var(--rojo-peru);
+            color: #eee;
+            text-align: center;
+            padding: 50px 20px;
+            margin-top: 60px;
+        }
+
+        /* RESPONSIVIDAD MÓVIL */
+        @media (max-width: 800px) {
+            .cedula-digital { flex-direction: column; }
+            .columna-voto { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-nav">
+        <img src="assets/img/onpe.png" class="logo-certus" alt="ONPE">
+        <div class="titulo-elecciones">
+            <div style="font-weight: bold;">ELECCIONES GENERALES 2026</div>
+            <div style="font-size: 12px;">PLATAFORMA DE SUFRAGIO NACIONAL</div>
+        </div>
+    </header>
+
+    <div class="main-container">
+
+        <div class="cedula-digital">
+            <div class="columna-voto" id="col-presidencial">
+                <div class="cabecera-columna">PRESIDENTE Y VICEPRESIDENTE</div>
+            </div>
+            <div class="columna-voto" id="col-sen-u">
+                <div class="cabecera-columna">SENADO - DISTRITO ÚNICO (1-60)</div>
+            </div>
+            <div class="columna-voto" id="col-sen-m">
+                <div class="cabecera-columna">SENADO - DISTRITO MÚLTIPLE (1-4)</div>
+            </div>
+            <div class="columna-voto" id="col-diputados">
+                <div class="cabecera-columna">CÁMARA DE DIPUTADOS (1-30)</div>
+            </div>
+            <div class="columna-voto" id="col-parlamento">
+                <div class="cabecera-columna">PARLAMENTO ANDINO (1 - 15)</div>
+            </div>
+        </div>
+
+        <button class="btn-enviar" id="btnEnviar" onclick="enviarProceso()">PROCESAR VOTO ELECTRÓNICO</button>
+
+        <div>
+            <a href="datos.html" class="btn-resultados">Resultados<br>en Vivo
+                <i class="bi bi-clock"></i>
+            </a>
+        </div>
+    </div>
+
+    <footer class="footer-institucional">
+        <p>Bicentenario del Perú - 2026</p>
+        <p>Oficina Nacional de Procesos Electores. Todos los derechos reservados.
+            La presente aplicación web es hecha para fines educativos
+        </p>
+    </footer>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBYv9vgKwB3kDuJ6pH57Jpt-Gt9ZDrYSeI",
+        authDomain: "sistemavotos2026.firebaseapp.com",
+        projectId: "sistemavotos2026",
+        storageBucket: "sistemavotos2026.firebasestorage.app",
+        messagingSenderId: "829769345046",
+        appId: "1:829769345046:web:ce5929176899345555ad37"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const listaPartidos = [
+        { id: 1, nombre: "Fuerza popular", logo: "assets/img/logo_fuerza_popular.svg", candi: "assets/img/keiko.png" },
+        { id: 2, nombre: "Si creo", logo: "assets/img/si_creo_logo.png", candi: "assets/img/carlos_espaq.jfif" },
+        { id: 3, nombre: "APRA", logo: "assets/img/apra_logo.png", candi: "assets/img/enrique_valderrama.jpg" },
+        { id: 4, nombre: "Renovacion popular", logo: "assets/img/renovacion_popular_logo.png", candi: "assets/img/porky.jfif" },
+        { id: 5, nombre: "Alianza para el progreso", logo: "assets/img/alianza_para_el_progreso_logo.png", candi: "assets/img/cesar_acuña.jpg" },
+        { id: 6, nombre: "Partido civico OBRAS", logo: "assets/img/partido_civico_obras.png", candi: "assets/img/ricardo_belmont.jfif" },
+        { id: 7, nombre: "Juntos por el perú", logo: "assets/img/juntos_peru_logo.png", candi: "assets/img/roberto_sanchez.jpg" },
+        { id: 8, nombre: "Buen gobierno", logo: "assets/img/buen_gobierno_logo.jpg", candi: "assets/img/jorge_nieto.jpg" },
+        { id: 9, nombre: "Pais para todos", logo: "assets/img/pais_para_todos.jpg", candi: "assets/img/carlos_alvarez.webp" },
+        { id: 10, nombre: "Ahora nación", logo: "assets/img/ahora_nacion.jpg", candi: "assets/img/lopez_chau.jfif" },
+        { id: 11, nombre: "Podemos perú", logo: "assets/img/podemos_peru_logo.png", candi: "assets/img/pepe_luna.webp" },
+        { id: 12, nombre: "Cooperación popular", logo: "assets/img/cooperacion_popular_logo.png", candi: "assets/img/lescano.jfif" },
+        { id: 13, nombre: "Perú libre", logo: "assets/img/peru_libre_logo.png", candi: "assets/img/vladimir_cerron.jfif" },
+        { id: 14, nombre: "Somos perú", logo: "assets/img/somos_peru_logo.svg", candi: "assets/img/forsyth.jfif" },
+        { id: 15, nombre: "Integridad democrática", logo: "assets/img/partidodewolfgang.jpg", candi: "assets/img/wolfgang.jfif" },
+        { id: 16, nombre: "Primero la gente", logo: "assets/img/primero_la_gente.jpg", candi: "assets/img/maria_perez_tello.jpg" },
+        { id: 17, nombre: "Frente de la esperanza", logo: "assets/img/popy_olivera_LOGO.svg", candi: "assets/img/popy_olivera.jfif" }
+    ];
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            try {
+                const docRef = doc(db, "usuarios", user.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    // VALIDACIÓN: Si ya votó, fuera de aquí.
+                    if (data.haVotado === true) {
+                        alert("Usted ya emitió su voto.");
+                        window.location.href = "datos.html";
+                        return;
+                    }
+
+                    // LLENADO DE DATOS (Mantenemos tus IDs de span)
+                    document.getElementById('v_nombre').innerText = data.nombre || "";
+                    document.getElementById('v_apellidos').innerText = `${data.paterno || ""} ${data.materno || ""}`;
+                    document.getElementById('v_dni').innerText = data.dni || "";
+                    document.getElementById('v_grupo').innerText = data.grupo || "";
+                }
+            } catch (e) { console.error("Error al cargar usuario:", e); }
+        } else {
+            //window.location.href = "index.html";
+        }
+    });
+
+    function crearFila(p, clase, inputsCount, maxVal) {
+        let inputs = "";
+        for(let i=0; i<inputsCount; i++) {
+            inputs += `<input type="text" class="input-num" maxlength="2" onchange="if(this.value>${maxVal}){alert('Max ${maxVal}');this.value=''}">`;
+        }
+        return `
+            <div class="fila-partido ${clase}" data-id="${p.id}">
+                <div class="img-contenedor">
+                <img src="${p.logo}" alt="logo" style="width: 40px; height: 40px; object-fit: contain;">
+                </div>
+
+                <div class="nombre-p">${p.nombre}</div>
+                <div class="recuadro-voto" onclick="seleccionarPartido(this, '${clase}')"></div>
+                ${inputsCount > 0 ? `<div class="preferenciales">${inputs}</div>` : ""}
+            </div>`;
+    }
+
+    // Dibujamos al cargar
+    const colPres = document.getElementById('col-presidencial');
+    const colSenU = document.getElementById('col-sen-u');
+    const colSenM = document.getElementById('col-sen-m');
+    const colDipu = document.getElementById('col-diputados');
+    const colParl = document.getElementById('col-parlamento');
+
+    listaPartidos.forEach(p => {
+        if(colPres) colPres.innerHTML += `
+            <div class="fila-partido f-p" data-id="${p.id}">
+
+<div class="img-contenedor">
+    <img src="${p.logo}" style="width: 40px; height: 40px; object-fit: contain;">
+</div>
+
+<div class="img-contenedor">
+    <img src="${p.candi}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
+</div>
+                <div class="nombre-p">${p.nombre}</div>
+                <div class="recuadro-voto" onclick="seleccionarPartido(this, 'f-p')"></div>
+            </div>`;
+        if(colSenU) colSenU.innerHTML += crearFila(p, 'f-su', 2, 60);
+        if(colSenM) colSenM.innerHTML += crearFila(p, 'f-sm', 2, 4);
+        if(colDipu) colDipu.innerHTML += crearFila(p, 'f-d', 1, 30);
+        if(colParl) colParl.innerHTML += crearFila(p, 'f-pa', 2, 15);
+    });
+
+    window.seleccionarPartido = function(elemento, clase) {
+        const filas = document.querySelectorAll('.' + clase);
+        if (elemento.innerText === "X") {
+            elemento.innerText = "";
+            filas.forEach(f => f.classList.remove('opcion-bloqueada'));
+        } else {
+            filas.forEach(f => {
+                f.querySelector('.recuadro-voto').innerText = "";
+                f.classList.add('opcion-bloqueada');
+            });
+            elemento.innerText = "X";
+            elemento.parentElement.classList.remove('opcion-bloqueada');
+        }
+    };
+
+    window.enviarProceso = async function() {
+        const filaPres = Array.from(document.querySelectorAll('.f-p'))
+                              .find(f => f.querySelector('.recuadro-voto').innerText === "X");
+        
+        if (!filaPres) return alert("Marca una 'X' en la columna de PRESIDENTE.");
+
+        try {
+            const btn = document.getElementById('btnEnviar');
+            btn.disabled = true;
+            btn.innerText = "PROCESANDO...";
+
+            // 1. Guardar el voto
+            await addDoc(collection(db, "votos"), {
+                dni: document.getElementById('v_dni').innerText,
+                partidoId: parseInt(filaPres.dataset.id),
+                fecha: new Date().toISOString()
+            });
+
+            // 2. Marcar al usuario como que ya votó en su documento de AUTH
+            if (auth.currentUser) {
+                const userRef = doc(db, "usuarios", auth.currentUser.uid);
+                await updateDoc(userRef, { haVotado: true });
+            }
+
+            alert("✅ VOTO REGISTRADO");
+            window.location.href = "datos.html";
+        } catch (e) {
+            alert("Error: " + e.message);
+            document.getElementById('btnEnviar').disabled = false;
+            document.getElementById('btnEnviar').innerText = "PROCESAR VOTO ELECTRÓNICO";
+        }
+    };
+</script>
+</body>
+</html>

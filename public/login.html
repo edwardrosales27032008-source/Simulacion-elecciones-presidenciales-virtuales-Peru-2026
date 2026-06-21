@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>ONPE - Inicio de Sesión</title>
+    <link rel="icon" href="assets/img/escudo_nacional_PERU.png">
+    <style>
+        body { font-family: Arial; background: #eee; display: flex; justify-content: center; padding: 100px; }
+        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 350px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #002e5f; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover{
+            background-color: royalblue;
+            
+        }
+        .aviso_cuenta {
+            text-align: center;
+            color: black;
+            font-size: 1.03rem;
+        }
+        .aviso_cuenta a:hover{
+            color: #002e5f;
+            border-bottom: solid 1.5px #002e5f;
+            
+        }
+        .aviso_cuenta a {
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 style="text-align: center;">INICIAR SESIÓN</h2>
+    <input type="email" id="email" placeholder="Correo electrónico">
+    <input type="password" id="pass" placeholder="Contraseña">
+    <button id="btnLogin">ENTRAR A VOTAR</button>
+    <p class="aviso_cuenta"><a href="index.html">¿No tienes cuenta? Regístrate</a></p>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    // 1. CONFIGURACIÓN (Asegúrate que sea esta exactamente)
+    const firebaseConfig = {
+        apiKey: "AIzaSyBYv9vgKwB3kDuJ6pH57Jpt-Gt9ZDrYSeI",
+        authDomain: "sistemavotos2026.firebaseapp.com",
+        projectId: "sistemavotos2026",
+        storageBucket: "sistemavotos2026.firebasestorage.app",
+        messagingSenderId: "829769345046",
+        appId: "1:829769345046:web:ce5929176899345555ad37"
+    };
+
+    // 2. INICIALIZACIÓN
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // 3. EVENTO DEL BOTÓN
+    document.getElementById('btnLogin').onclick = async (e) => {
+        e.preventDefault(); // Evita que la página se refresque
+        
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('pass').value.trim();
+
+        console.log("Intentando entrar con:", email);
+
+        if (email === "" || pass === "") {
+            alert("Por favor, llena ambos campos.");
+            return;
+        }
+
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+            console.log("Login exitoso:", userCredential.user.uid);
+            alert("¡Bienvenido!");
+            window.location.href = "voto.html";
+        } catch (error) {
+            console.error("Error completo:", error);
+            
+            // Mensajes amigables según el error de Firebase
+            if (error.code === 'auth/invalid-credential') {
+                alert("Correo o contraseña incorrectos.");
+            } else if (error.code === 'auth/invalid-api-key') {
+                alert("ERROR CRÍTICO: La API Key de Firebase sigue estando mal configurada.");
+            } else {
+                alert("Error: " + error.message);
+            }
+        }
+    };
+</script>
+</body>
+</html>
